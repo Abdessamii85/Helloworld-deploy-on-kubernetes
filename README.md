@@ -51,7 +51,9 @@ In the Jenkins UI we need to add a secret file credential with the kubeconfig on
 
 ## Continuous deployment Pipeline
 
-- this pipeline will deploy abdessamii/user-py using a helm chart 
+- This pipeline will deploy abdessamii/user-py using a helm chart 
+- Using Jenkins UI user should specify the [image tag](https://hub.docker.com/repository/docker/abdessamii/user-py/tags?page=1&ordering=last_updated) to deploy in the "build with parameter" option
+
 - Integration test 
   ```bash
    kubectl rollout status --timeout=60s deployment helloworld
