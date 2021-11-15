@@ -1,0 +1,71 @@
+pipeline {
+
+	agent any
+
+  environment {
+
+        IMAGE_VERSION = ''
+        CHART_PATH = './helloworld'
+        def myYaml = readYaml file: CHART_PATH + "/Chart.yaml"
+        def VERSION = "${myYaml.version}"
+        def APP = "${myYaml.name}"
+      }
+  parameters {
+      //
+        string(name: 'IMAGE_VERSION', description: 'Choose the Image Tag to deploy on the Kubernetes cluster !')
+
+    }
+
+  stages {
+   
+
+ 
+    stage('Deploy ') {
+      steps {
+        script {
+                //add Build description and build display name to jenkins
+                currentBuild.displayName = "Helloworld:${IMAGE_VERSION}"
+                currentBuild.description = "deploy Helloworld"
+                //Fake namespace
+                withKubeConfig(contextName: 'revolut-helloworld-npr', credentialsId: 'kubeconfig-revolut-helloworld-npr.txt') {
+                echo 'install Helloworld chart ....'
+                //installing the helm Chart
+                sh "helm upgrade --install ${APP} ${CHART_PATH} --set image.tag=${IMAGE_VERSION}"    
+            }
+        }
+      }
+    }
+
+    stage('Test deployment ') {
+      steps {
+        script {
+               // Test the status of the deploiment 
+               def status = sh(script: "kubectl rollout status --timeout=60s deployment ${APP}",returnStatus: true)
+               if (status != 0 ) {  
+                        echo "############################################  
+                              Application Helloworld is down  
+                              ############################################"
+	                    sh "exit 1"
+
+                        }
+
+            }
+        }
+      }
+    
+
+  }
+
+    post {
+     //email notification
+        success {
+            emailext body: "Email automatique, Do Not Reply , Deploy Helloworld  OK   Image version: ${IMAGE_VERSION}   Project: ${env.JOB_NAME} Build Number: ${env.BUILD_NUMBER}    URL de build: ${env.BUILD_URL}", recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']], subject: "Success: Job deploy Helloworld Instance  "
+        }
+        failure {
+            emailext body: "Email automatique, Do Not Reply , Deploy Jenkins Helloworld  KO   Image version: ${IMAGE_VERSION}    Project: ${env.JOB_NAME}   Build Number: ${env.BUILD_NUMBER}     URL de build: ${env.BUILD_URL}", recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']], subject: "failure: Job deploy Helloworld Instance  "
+        }
+        always {
+            cleanWs()
+        }
+    }
+}

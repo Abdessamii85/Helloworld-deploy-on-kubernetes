@@ -17,7 +17,7 @@ this project deploy the [hello-world](https://github.com/Abdessamii85/hello-worl
 
 for more resilence of the application
 - A [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) was configured  to to ensure that Kubernetes scales the number of Pods when the cpu usage exceed  80%
-- A Pod Disruption Budget also added to allow higher availability in maintenace windows
+- A [Pod Disruption Budget](https://kubernetes.io/docs/tasks/run-application/configure-pdb/) also added to allow higher availability in maintenace windows
 
 # Test localy
 
@@ -52,7 +52,7 @@ In the Jenkins UI we need to add a secret file credential with the kubeconfig on
 ## Continuous deployment Pipeline
 
 - this pipeline will deploy abdessamii/user-py using a helm chart 
-- basic  integration test 
+- Integration test 
   ```bash
    kubectl rollout status --timeout=60s deployment helloworld
   ```
